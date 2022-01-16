@@ -4,13 +4,11 @@ info:
   description: "Mellov API"
   version: "1.2.3"
   title: "Mellov API"
-  contact:
-    email: "you@your-company.com"
   license:
     name: "Apache 2.0"
     url: "http://www.apache.org/licenses/LICENSE-2.0.html"
-host: "what-appy-server.herokuapp.com"
-basePath: "/whatapi"
+host: "mellov-server.herokuapp.com"
+basePath: "/api"
 tags:
 - name: "admins"
   description: "Secured Admin-only calls"
