@@ -2,18 +2,32 @@
 
 var fs = require('fs'),
     path = require('path'),
+    cors = require('cors'),
     http = require('http');
 
 var app = require('connect')();
 var swaggerTools = require('swagger-tools');
 var jsyaml = require('js-yaml');
-var serverPort = 8080;
+var serverPort = process.env.PORT || 8080;
+const authService = require('./service/authService');
+const injectWebSocket = require('./websocket').injectWebSocket;
+const injectSpotify = require('./spotify').injectSpotify;
+
+
+app.use(cors());
+const server = http.createServer(app);
+injectWebSocket(server);
+injectSpotify(app)
 
 // swaggerRouter configuration
 var options = {
   swaggerUi: path.join(__dirname, '/swagger.json'),
   controllers: path.join(__dirname, './controllers'),
   useStubs: process.env.NODE_ENV === 'development' // Conditionally turn on stubs (mock mode)
+};
+
+var securityOptions = {
+  'AuthorizationHeader': authService.verifyToken
 };
 
 // The Swagger document (require it, build it programmatically, fetch it from a URL, ...)
@@ -29,6 +43,14 @@ swaggerTools.initializeMiddleware(swaggerDoc, function (middleware) {
   // Validate Swagger requests
   app.use(middleware.swaggerValidator());
 
+  // Wire up authentication/authorization handlers
+  app.use(middleware.swaggerSecurity(securityOptions));
+
+  app.use(function onerror(err, req, res, next) {
+    console.log('An error occured:', err.toString());
+    res.end('Access denied!')
+  });
+
   // Route validated requests to appropriate controller
   app.use(middleware.swaggerRouter(options));
 
@@ -36,7 +58,7 @@ swaggerTools.initializeMiddleware(swaggerDoc, function (middleware) {
   app.use(middleware.swaggerUi());
 
   // Start the server
-  http.createServer(app).listen(serverPort, function () {
+  server.listen(serverPort, function () {
     console.log('Your server is listening on port %d (http://localhost:%d)', serverPort, serverPort);
     console.log('Swagger-ui is available on http://localhost:%d/docs', serverPort);
   });
