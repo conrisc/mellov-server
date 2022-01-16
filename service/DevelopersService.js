@@ -3,12 +3,12 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-var utils = require('../utils/writer.js');
+var { respondWithCode } = require('../utils/writer.js');
 const DBService = require('./DatabaseService');
 
 
 exports.signInUser = function(userCredentials) {
-	const response = new utils.ResponsePayload(200, {}, {});
+	const response = respondWithCode(200, {});
 	return new Promise((resolve, reject) => {
 		const data = {
 			email: userCredentials.email
